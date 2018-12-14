@@ -8,25 +8,25 @@ import boto3
 import sys
 
 def _pprint_mappings(t, verbose=False):
-    print(crayons.blue("Mappings", bold=True))
-    print("  {}".format(p))
+    print(crayons.blue("\nMappings", bold=True))
+    print("  - {}".format(p))
 
 def _pprint_conditions(t, verbose=False):
-    print(crayons.blue("Conditions", bold=True))
+    print(crayons.blue("\nConditions", bold=True))
     for p in t:
         if verbose:
-            print("  {} ({})".format(p, t[p]))
+            print("  - {} ({})".format(p, t[p]))
         else:
-            print("  {}".format(p))
+            print("  - {}".format(p))
 
 
 def _pprint_resources(t, verbose=False):
-    print(crayons.blue("Resources", bold=True))
+    print(crayons.blue("\nResources", bold=True))
     for p in t:
         if verbose:
-            print("  {} ({})".format(p, t[p]['Type']))
+            print("  - {} ({})".format(p, t[p]['Type']))
         else:
-            print("  {}".format(p))
+            print("  - {}".format(p))
 
 
 def __decode_output(output):
@@ -34,25 +34,46 @@ def __decode_output(output):
 
 
 def _pprint_outputs(t, verbose=False):
-    print(crayons.blue("Outputs", bold=True))
-    for p in t:
-        output = t[p]
-        if 'Export' in output:
-            a = list(output['Export']['Name'].keys())[0]
-            print("{}{}".format(
-                crayons.white("  {}\n    Exported as ".format(p), bold=True),
-                crayons.red("{}".format(crayons.red(output['Export']['Name'])))))
-        else:
-            print(crayons.white("  {}".format(p), bold=True))
-
-
-def _pprint_parameters(t, verbose=False):
-    print(crayons.blue("Parameters", bold=True))
+    print(crayons.blue("\nOutputs", bold=True))
     for p in t:
         if verbose:
-            print("  {} ({})".format(p, t[p]['Type']))
+            line = "  - {}".format(p)
+            if 'Description' in t[p] or 'Export' in t[p]:
+                line += ':'
+            if 'Description' in t[p]:
+                line += " {}".format(t[p]['Description'])
+            if 'Export' in t[p]:
+                line += " (exported as: {})".format(t[p]['Export']['Name'])
+            print(line)
         else:
-            print("  {}".format(p))
+            print("  - {}".format(p))
+        # output = t[p]
+        # if 'Export' in output:
+        #     # a = list(output['Export']['Name'].keys())[0]
+        #     print("{}{}".format(
+        #         crayons.white("  - {}\n      Exported as ".format(p), bold=True),
+        #         crayons.red("{}".format(crayons.red(output['Export']['Name'])))))
+        # else:
+        #     print(crayons.white("  - {}".format(p), bold=True))
+
+
+def _pprint_parameters(t, verbose=False, markdown=False):
+    print(crayons.blue("\nParameters", bold=True))
+    for p in t:
+        if verbose:
+            line = "  - {} ({})".format(p, t[p]['Type'])
+            if 'Description' in t[p] or 'Default' in t[p]:
+                line += ':'
+            if 'Description' in t[p]:
+                line += " {}".format(t[p]['Description'])
+            if 'Default' in t[p]:
+                default = t[p]['Default']
+                if default == '':
+                    default = "\"\""
+                line += " (default: {})".format(default)
+            print(line)
+        else:
+            print("  - {}".format(p))
 
 def _boto_validate(t):
     try:
@@ -75,7 +96,8 @@ def _greeter():
 @click.option(
     "--verbose", "-v", is_flag=True, default=False, help="Be more verbose about the output")
 @click.option("--validate", is_flag=True, default=False, help="Validate template with AWS")
-def cli(template, verbose=False, validate=False, version=False):
+@click.option("--include-conditions", "-ic", is_flag=True, default=False, help="Include Conditions")
+def cli(template, verbose=False, validate=False, version=False, include_conditions=False):
     click.echo(_greeter(), err=True)
     if version:
         sys.exit(0)
@@ -105,7 +127,7 @@ def cli(template, verbose=False, validate=False, version=False):
         _pprint_parameters(t['Parameters'], verbose=verbose)
     if 'Mappings' in t and verbose:
         _pprint_mappings(t['Mappings'])
-    if 'Conditions' in t:
+    if 'Conditions' in t and include_conditions:
         _pprint_conditions(t['Conditions'], verbose=verbose)
     if 'Resources' in t:
         _pprint_resources(t['Resources'], verbose=verbose)
