@@ -24,7 +24,7 @@ def _pprint_resources(t, verbose=False):
     print(crayons.blue("\nResources", bold=True))
     for p in t:
         if verbose:
-            print("  - {} ({})".format(p, t[p]['Type']))
+            print("  - **{}** ({})".format(p, t[p]['Type']))
         else:
             print("  - {}".format(p))
 
@@ -37,7 +37,7 @@ def _pprint_outputs(t, verbose=False):
     print(crayons.blue("\nOutputs", bold=True))
     for p in t:
         if verbose:
-            line = "  - {}".format(p)
+            line = "  - **{}**".format(p)
             if 'Description' in t[p] or 'Export' in t[p]:
                 line += ':'
             if 'Description' in t[p]:
@@ -61,7 +61,7 @@ def _pprint_parameters(t, verbose=False, markdown=False):
     print(crayons.blue("\nParameters", bold=True))
     for p in t:
         if verbose:
-            line = "  - {} ({})".format(p, t[p]['Type'])
+            line = "  - **{}** ({})".format(p, t[p]['Type'])
             if 'Description' in t[p] or 'Default' in t[p]:
                 line += ':'
             if 'Description' in t[p]:
